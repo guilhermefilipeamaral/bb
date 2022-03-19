@@ -1,0 +1,18 @@
+<h2 mat-dialog-title>Adicionar nova entrada</h2>
+<mat-dialog-content class="mat-typography" style="width: 600px;">
+  <mat-form-field
+  class="mt-3 c-password"
+  appearance="fill">
+  <mat-label>Campo 1</mat-label>
+  <input
+    matInput
+    placeholder="Password"
+    [type]="'text'"
+    [formControl]="accountFormControl"
+    formControlName="password">
+</mat-form-field>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-button mat-dialog-close>Cancelar</button>
+  <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Adicionar</button>
+</mat-dialog-actions>
