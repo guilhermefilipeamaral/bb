@@ -1,0 +1,49 @@
+<h1>Welcome</h1>
+<div>
+  <form
+    (ngSubmit)="onClickLogin()"
+    [formGroup]="loginFormGroup">
+      <mat-form-field appearance="fill">
+        <mat-label>Email</mat-label>
+        <input
+          matInput
+          placeholder="example@example.com"
+          formControlName="email">
+        <mat-error *ngIf="emailFormControl.errors">
+          {{"Email is invalid"}}
+        </mat-error>
+        <mat-error *ngIf="emailFormControl.errors">
+          {{"Email is required"}}
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field class="mt-3" appearance="fill">
+        <mat-label>Password</mat-label>
+        <input
+          matInput
+          [type]="hidePassword ? 'password' : 'text'"
+          placeholder="Password"
+          formControlName="password">
+        <button
+          mat-icon-button
+          matSuffix (click)="hidePassword = !hidePassword"
+          type="button"
+          [attr.aria-label]="'Hide password'"
+          [attr.aria-pressed]="hidePassword">
+          <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+        </button>
+        <mat-error *ngIf="passwordFormControl.errors">
+          {{"Password is required"}}
+        </mat-error>
+      </mat-form-field>
+
+      <div class="d-flex justify-content-center mt-3">
+        <button mat-flat-button
+          class="col-6"
+          color="primary"
+          type="submit">
+          Login
+        </button>
+      </div>
+  </form>
+</div>

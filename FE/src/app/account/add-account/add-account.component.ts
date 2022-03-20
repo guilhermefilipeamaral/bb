@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 
-import { Account } from './../models/account.model';
+import { Account } from '../models/account.model';
 import { FormControl } from '@angular/forms';
 
 @Component({
