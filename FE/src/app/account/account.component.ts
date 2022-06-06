@@ -1,4 +1,5 @@
-import {CollectionViewer, DataSource} from "@angular/cdk/collections";
+import { ApplicationState } from 'src/app/common/app.state';
+import { AuthenticationService } from './../login/services/authentication.service';
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 
 import { Account } from "./models/account.model";
@@ -8,6 +9,11 @@ import { ApiService } from 'src/app/account/services/api.service';
 import { MatDialog } from "@angular/material/dialog";
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { Router } from '@angular/router';
+import * as XLSX from 'xlsx';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormControl, FormGroup } from '@angular/forms';
+import { Store } from './models/store.model';
 
 @Component({
   selector: 'app-account',
@@ -15,36 +21,72 @@ import jsPDF from 'jspdf';
   styleUrls: ['./account.component.css']
 })
 export class AccountComponent implements OnInit {
-  // public data = new BehaviorSubject<Array<Account>>([]);
+  @ViewChild('TABLE') public dataTable!: ElementRef;
   public data: Account[] = [];
-  public displayedColumns: string[] = ['Id', 'CreditNotesWithTax', 'DepositCash', 'DepositCheck', 'DepositTotal',
-    'TotalPOSWithcommission', 'TotalPOSWithoutcommission', 'TotalRevenueWithTax', 'TotalRevenueWithoutTax', 'Notes', 'Edit-delete'];
+  public displayedColumns: string[] = ['CreationDate',
+    'TotalRevenueWithoutTax', 'TotalRevenueWithTax',
+    'CreditNotesWithTax', 'DepositCash', 'DepositTotal',
+    'TotalPOSWithcommission', 'TotalPOSWithoutcommission',
+    'Notes',
+    'Edit-delete'];
   @ViewChild('htmlData') public htmlData!: ElementRef;
-  public dataSource = new AccountDataSource(this.apiService);
+  public dataSource = new AccountDataSource(this.apiService, this.appState);
   public date = new Date();
+  public filters = new FormGroup({
+    start: new FormControl(),
+    end: new FormControl(),
+    store: new FormControl("1")
+  });
+
+  public store: Store[] | undefined;
   constructor(
+    public dialog: MatDialog,
+    public appState: ApplicationState,
     private apiService: ApiService,
-    public dialog: MatDialog
+    private authenticationService: AuthenticationService,
+    private router: Router,
+    private snackBar: MatSnackBar,
     ) {
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    this.filters.setValue({
+      start: firstDay,
+      end: lastDay,
+      store: ""
+    });
+    this.getStores();
   }
 
   public ngOnInit() {
     this.dataSource.connect();
   }
 
+  public applyFilter(): void {
+    this.dataSource.loadAccount(
+      this.filters.value.start,
+      this.filters.value.end,
+      this.filters.value.store
+    );
+  }
+
   public addRow(): void {
     const dialogRef = this.dialog.open(AddAccountComponent);
 
     dialogRef.afterClosed().subscribe(result => {
-      this.apiService.create(result);
+      if (result) {
+        this.dataSource.loadAccount();
+      }
     });
   }
 
-  public onEdit(): void {
-    const dialogRef = this.dialog.open(AddAccountComponent);
+  public onEdit(row: Account): void {
+    const dialogRef = this.dialog.open(AddAccountComponent, { data: row });
 
     dialogRef.afterClosed().subscribe(result => {
-      this.apiService.edit(result);
+      if (result) {
+        this.dataSource.loadAccount();
+      }
     });
   }
 
@@ -53,10 +95,16 @@ export class AccountComponent implements OnInit {
       .delete(row)
       .subscribe(result => {
         this.dataSource.loadAccount();
+        this.snackBar.open('Elemento foi eliminado com sucesso.', '', {
+          horizontalPosition: "end",
+          verticalPosition: "top",
+          duration: 3000,
+          panelClass: ['success-notification']
+        });
     });
   }
 
-  public onBtnExport() {
+  public onBtnExport(): void {
     html2canvas(this.htmlData.nativeElement).then(canvas => {
 
         let fileWidth = 208;
@@ -69,5 +117,35 @@ export class AccountComponent implements OnInit {
 
         PDF.save('angular-demo.pdf');
     });
+  }
+
+  public onBtnExportExcel(): void {
+    const newData = this.dataSource.accountSubject.value;
+    newData.map(row=>{
+      delete row.Id
+      return row
+    })
+    const workSheet=XLSX.utils.json_to_sheet(newData);
+    const workBook=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workBook,workSheet,"account");
+    //Buffer
+    let buf=XLSX.write(workBook,{bookType:"xlsx",type:"buffer"});
+    //Binary string
+    XLSX.write(workBook,{bookType:"xlsx",type:"binary"});
+    //Download
+    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+      "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+    XLSX.writeFile(workBook,"contabilidade de "+ monthNames[new Date().getMonth()] +".xlsx");
+  }
+
+  public logout(): void {
+    this.authenticationService.logout();
+    this.router.navigate(["/login"]);
+  }
+
+  private getStores(): void {
+    this.apiService.getStores().subscribe(result => {
+      this.store = result.data;
+    })
   }
 }

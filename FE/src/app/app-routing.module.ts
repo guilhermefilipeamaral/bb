@@ -12,13 +12,12 @@ const routes: Routes = [
   {
     path: "account",
     pathMatch: "full",
-/*     canActivate: [AuthGuard], */
     loadChildren: () => import("./account/account.module").then(mod => mod.AccountModule)
   },
   {
     path: "",
     pathMatch: "full",
-    redirectTo: "account"
+    redirectTo: "login"
   }
 ];
 

@@ -4,9 +4,9 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { BrowserAnimationsModule } from "@angular/platform-browser/animations";
 import { BrowserModule } from '@angular/platform-browser';
-import { CommonModule } from "@angular/common";
 import { JwtInterceptor } from './interceptors/jwt.interceptor';
 import { NgModule } from '@angular/core';
+import { ApplicationState } from "./common/app.state";
 
 @NgModule({
   declarations: [
@@ -18,7 +18,7 @@ import { NgModule } from '@angular/core';
     BrowserAnimationsModule,
     HttpClientModule
   ],
-  providers: [{ provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }],
+  providers: [{ provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }, ApplicationState],
   bootstrap: [AppComponent]
 })
 export class AppModule {}

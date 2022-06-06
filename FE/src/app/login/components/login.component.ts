@@ -2,6 +2,7 @@ import { Component, OnInit } from "@angular/core";
 import { FormBuilder, FormControl, FormGroup, Validators } from "@angular/forms";
 
 import { Router } from "@angular/router";
+import { AuthenticationService } from "../services/authentication.service";
 
 @Component({
   selector: "login",
@@ -24,25 +25,23 @@ export class LoginComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private router: Router,
-
+    private authenticationService: AuthenticationService
   ) {}
 
   ngOnInit(): void {
     this.redirectIfLoggedIn();
     this.initLoginForm();
-
   }
 
   public onClickLogin(): void {
     if (this.loginFormGroup.valid) {
-      // this.authenticationService.login(this.emailFormControl.value, this.passwordFormControl.value);
+       this.authenticationService.login(this.emailFormControl.value, this.passwordFormControl.value)
+        .subscribe(result => {
+          this.router.navigate(["/account"]);
+        });
     } else {
       this.loginFormGroup.markAllAsTouched();
     }
-  }
-
-  public onClickResetPassword(): void {
-    this.router.navigate(["authentication", "reset"]);
   }
 
   private initLoginForm(): void {

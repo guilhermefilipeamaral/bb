@@ -1,0 +1,14 @@
+.success-notification {
+  background-color: #009A42;
+  color: white;
+}
+
+.info-notification {
+  background-color: #FEC605;
+  color: white;
+}
+
+.error-notification {
+  background-color: #F84F31;
+  color: white;
+}
